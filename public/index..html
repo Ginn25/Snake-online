@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Snake Game</title>
+
+	<style>
+		body{
+			background-color: darkgray;
+		}
+		#canvas{
+			background-color: rgb(19, 10, 30);
+			border: solid 10px rgb(50, 50, 50);
+			image-rendering: pixelated;
+			image-rendering: crisp-edges;
+			image-rendering: -moz-crisp-edges;
+			width: 900px;
+			height:570px;
+		}
+	</style>
+</head>
+<body>
+
+	<canvas id="canvas" width="80" height="47"></canvas>
+
+	<script type="module">
+		import renderScreen from './renderScreen.js'
+		import createGame from './game.js'
+		import onKeyboard from './onKeyboard.js'
+		import Server from '../server.js'
+
+		let Player1Id
+		const canvas = document.getElementById('canvas')
+		const game = createGame(canvas)
+		const state = game.state
+		const keyboard = onKeyboard(document,game)
+		
+
+		game.newObserver((params)=>{
+			//console.table(params)
+		})
+	
+		window.onload = ()=>{
+			const server = Server()
+			server.connect(game)
+			Player1Id = server.id
+		    keyboard.registerPlayer(Player1Id)
+			renderScreen(canvas,state,requestAnimationFrame,Player1Id)
+		}
+	</script>
+</body>
+</html>
