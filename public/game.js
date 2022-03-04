@@ -14,11 +14,14 @@ export default function createGame(canvas){
 
     function startPlayers(playerId){
         const player = state.players[playerId]
+        if(!player) { newPlayer({playerId}); startPlayers(playerId) ;return }
         
-        movePlayer({
-            playerId:playerId,
-            moveKey:player.direction
-        })
+        if(player.ativo){
+            movePlayer({
+                playerId:playerId,
+                moveKey:player.direction
+            })
+        }
         
         setTimeout(startPlayers,player.velocity,playerId)
     }
@@ -46,7 +49,7 @@ export default function createGame(canvas){
             calda: [],
             velocity: 100,
             direction: 'direction' in params ? params.direction : null,
-            ativo: false,
+            ativo: true,
             energy: 0,
             run: false
         }
@@ -165,6 +168,7 @@ export default function createGame(canvas){
         if(testFunc){
             if(testFunc()) player.direction = keyPressed 
         }else{
+            if( !player.ativo ) return
             movePlayer({
                 playerId: params.playerId,
                 moveKey: params.keyPressed,
@@ -209,45 +213,35 @@ export default function createGame(canvas){
         const moveFunc = acceptedMoves[moveKey]
 
         if(player && moveFunc){
-            player.ativo = true
-            player.pastPosition = { x: player.x, y: player.y }
+            player.ativo = false
             
             if(player.run) run()
             moveFunc(player)
             checkMove(player)
-            //updateCalda(player)
-            if(player.calda.length > 0) moveCalda(player,acceptedMoves)
+            updateCalda(player)
+            caldaCollision(player)
+
+            player.ativo = true
         }
         // notifyAll
     }
 
-    function newCalda(player){
-        console.log(player)
-        const x = player.pastPosition.x
-        const y = player.pastPosition.y
-
-        player.calda.push({
-            x: x,
-            y: y,
-            direction: player.direction
-        })
-    }
-
     function updateCalda(player){
-        for(let id = player.calda.length-1; id >= 0 ; id--){
-            const calda = player.calda[id]
-            if(id == 0) {
-                calda.direction = player.direction
-            }else{
-                calda.direction = player.calda[id-1].direction
-            } 
-        }
+
+        player.calda.unshift({x: player.x ,y: player.y})
+
+        if(player.calda.length-1 > player.pontos) player.calda.pop()
     }
 
-    function moveCalda(player,moves){
-        for(let calda of player.calda){
-            const func = moves[calda.direction]
-            func(calda)
+    function caldaCollision(player){
+
+        for(let id in player.calda){
+            const calda = player.calda[id]
+
+            if(id > 0 && player.x === calda.x && player.y === calda.y ){
+                alert(calda)
+                //removePlayer(player)
+            }
         }
     }
 
@@ -255,7 +249,6 @@ export default function createGame(canvas){
         const fruit = params.fruit 
         const player = params.player
 
-        newCalda(player)
         player.pontos++
         if(player.energy < 100) player.energy += 10
 
@@ -271,13 +264,13 @@ export default function createGame(canvas){
         observerExe,
         newPlayer,
         removePlayer,
-        directionPlayer,
         movePlayer,
+        directionPlayer,
         newFruit,
         removeFruit,
-        random,
         updateState,
 
+        random,
         newId
     }
 }
