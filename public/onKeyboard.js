@@ -16,6 +16,7 @@ export default function onKeyboard(document,game){
             keyPressed: event.key,
             pressed: event.repeat
         }
+
         game.directionPlayer(params)
     }
 

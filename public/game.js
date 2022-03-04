@@ -19,7 +19,8 @@ export default function createGame(canvas){
         if(player.ativo){
             movePlayer({
                 playerId:playerId,
-                moveKey:player.direction
+                moveKey:player.direction,
+                pressed: false
             })
         }
         
@@ -41,12 +42,15 @@ export default function createGame(canvas){
     }
 
     function newPlayer(params){
+        const x = 'x' in params ? params.x : random(0,canvas.width-1)
+        const y = 'y' in params ? params.y : random(0,canvas.height-1)
+
         const player = {
             playerId: params.playerId,
-            x: 'x' in params ? params.x : random(0,canvas.width-1),
-            y: 'y' in params ? params.y : random(0,canvas.height-1),
+            x: x,
+            y: y,
             pontos: 0,
-            calda: [],
+            calda: [{x,y}],
             velocity: 100,
             direction: 'direction' in params ? params.direction : null,
             ativo: true,
@@ -127,12 +131,15 @@ export default function createGame(canvas){
         }
 
         for(let id in state.players){
-            const player = state.players[id]
-            if(player.x == params.x && player.y == params.y && id != params.playerId) result.player = player
+            const playerCalda = state.players[id].calda
+            
+            result.player = playerCalda.find( calda => calda.x == params.x && calda.y == params.y && params.playerId != id)
+            if(result.player) result.player.playerId = id
         }
-    
+
         for(let id in state.fruits){
             const fruit = state.fruits[id]
+
             if(fruit.x == params.x && fruit.y == params.y) result.fruit = fruit
         }
 
@@ -172,7 +179,7 @@ export default function createGame(canvas){
             movePlayer({
                 playerId: params.playerId,
                 moveKey: params.keyPressed,
-                pressed:params.pressed
+                pressed: params.pressed
             })
         }
     }
@@ -193,35 +200,35 @@ export default function createGame(canvas){
                 if(player.x + 1 < canvas.width){ player.x ++ }else{ player.x = 0 }
             },
             [' '](player){
-                player.run = !player.run
-                player.velocity = 100
+
             }
         }
 
         function run(){
-            if(player.energy > 0){
+            console.log(moveKey)
+            if(moveKey == ' ' && params.pressed && player.energy > 0){
                 player.velocity = 35
                 player.energy--
             }else{
                 player.velocity = 100
-                player.run = false
             }
         }
+
+        
 
         const player = state.players[params.playerId]
         const moveKey = params.moveKey
         const moveFunc = acceptedMoves[moveKey]
-
+    
         if(player && moveFunc){
             player.ativo = false
             
-            if(player.run) run()
+            run()
             moveFunc(player)
-            checkMove(player)
             updateCalda(player)
-            caldaCollision(player)
+            checkMove(player)
 
-            player.ativo = true
+            player.ativo = true 
         }
         // notifyAll
     }
@@ -231,18 +238,6 @@ export default function createGame(canvas){
         player.calda.unshift({x: player.x ,y: player.y})
 
         if(player.calda.length-1 > player.pontos) player.calda.pop()
-    }
-
-    function caldaCollision(player){
-
-        for(let id in player.calda){
-            const calda = player.calda[id]
-
-            if(id > 0 && player.x === calda.x && player.y === calda.y ){
-                alert(calda)
-                //removePlayer(player)
-            }
-        }
     }
 
     function fruitCollision(params){
