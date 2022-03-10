@@ -153,34 +153,31 @@ export default function createGame(canvas){
 
         const testDirection = {
             ArrowUp(){
-                if(direction == 'ArrowDown') return 
-                return true
+                if(direction == 'ArrowDown') return player.direction 
+                return 'ArrowUp'
             },
             ArrowRight(){
-                if(direction == 'ArrowLeft') return 
-                return true
+                if(direction == 'ArrowLeft') return player.direction 
+                return 'ArrowRight'
             },
             ArrowLeft(){
-                if(direction == 'ArrowRight') return 
-                return true
+                if(direction == 'ArrowRight') return player.direction 
+                return 'ArrowLeft'
             },
             ArrowDown(){
-                if(direction == 'ArrowUp') return 
-                return true
+                if(direction == 'ArrowUp') return player.direction 
+                return 'ArrowDown'
+            },
+            [' '](){
+                player.run = !player.run
+                return player.direction
             }
         }
 
         const testFunc = testDirection[keyPressed]
         
         if(testFunc){
-            if(testFunc()) player.direction = keyPressed 
-        }else{
-            if( !player.ativo ) return
-            movePlayer({
-                playerId: params.playerId,
-                moveKey: params.keyPressed,
-                pressed: params.pressed
-            })
+            player.direction = testFunc()
         }
     }
 
@@ -198,31 +195,28 @@ export default function createGame(canvas){
             },
             ArrowRight(player){
                 if(player.x + 1 < canvas.width){ player.x ++ }else{ player.x = 0 }
-            },
-            [' '](player){
-
             }
         }
 
         function run(){
-            console.log(moveKey)
-            if(moveKey == ' ' && params.pressed && player.energy > 0){
-                player.velocity = 35
+            if(player.run && player.energy > 0){
+                player.velocity = 45
                 player.energy--
             }else{
+                player.run = false
                 player.velocity = 100
             }
         }
 
-        
-
         const player = state.players[params.playerId]
         const moveKey = params.moveKey
         const moveFunc = acceptedMoves[moveKey]
-    
+
+        
+        
         if(player && moveFunc){
             player.ativo = false
-            
+
             run()
             moveFunc(player)
             updateCalda(player)
@@ -275,6 +269,8 @@ function random(min, max) {
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
+
+// Para fim de testes
 
 function newId(){
     let abc = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
