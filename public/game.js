@@ -103,47 +103,30 @@ export default function createGame(canvas){
         })
     }
 
-    function checkMove(player){
+    function playerCollison(player){
 
-        const check = checkPosition(player)
+        for(const id in state.players){
+            const otherPlayer = state.players[id]
 
-        if(check.fruit){
-            const fruit = check.fruit
-            const params = {
-                fruit: fruit,
-                player: state.players[player.playerId]
+            for(const calda of otherPlayer.calda){
+                if(calda.x == player.x && calda.y == player.y && otherPlayer.playerId != id){
+                    removePlayer({playerId:otherPlayer.playerId})
+                }
             }
-            fruitCollision(params)
         }
-        if(check.player){
-            const otherPlayer = check.player
-            removePlayer({playerId:otherPlayer.playerId})
-            return false
-        }
-        return true
     }
 
-    function checkPosition(params){
-    
-        const result = {
-            fruit: false,
-            player: false
-        }
-
-        for(let id in state.players){
-            const playerCalda = state.players[id].calda
-            
-            result.player = playerCalda.find( calda => calda.x == params.x && calda.y == params.y && params.playerId != id)
-            if(result.player) result.player.playerId = id
-        }
-
+    function fruitCollision(player){
+        
         for(let id in state.fruits){
             const fruit = state.fruits[id]
-
-            if(fruit.x == params.x && fruit.y == params.y) result.fruit = fruit
+            
+            if(fruit.x == player.x && fruit.y == player.y){
+                player.pontos++
+                if(player.energy < 100) player.energy += 10
+                removeFruit({fruitId: fruit.fruitId})
+            }
         }
-
-        return result
     }
 
     function directionPlayer(params){
@@ -218,7 +201,8 @@ export default function createGame(canvas){
             run()
             moveFunc(player)
             updateCalda(player)
-            checkMove(player)
+            fruitCollision(player)
+            playerCollison(player)
 
             player.ativo = true 
         }
@@ -232,21 +216,10 @@ export default function createGame(canvas){
         if(player.calda.length-1 > player.pontos) player.calda.pop()
     }
 
-    function fruitCollision(params){
-        const fruit = params.fruit 
-        const player = params.player
-
-        player.pontos++
-        if(player.energy < 100) player.energy += 10
-
-        removeFruit({fruitId: fruit.fruitId})
-    }
-
     return {
         state,
         startPlayers,
         startFruits,
-        checkPosition,
         newObserver,
         observerExe,
         newPlayer,
