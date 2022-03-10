@@ -211,8 +211,6 @@ export default function createGame(canvas){
         const player = state.players[params.playerId]
         const moveKey = params.moveKey
         const moveFunc = acceptedMoves[moveKey]
-
-        
         
         if(player && moveFunc){
             player.ativo = false
