@@ -14,11 +14,13 @@ export default function server(){
         clientGame.updateState(game.state)
         clientGame.startPlayers(id)
         clientGame.startFruits()
-        //let otherPlayerId = game.newId
-        //clientGame.newPlayer({playerId:otherPlayerId,direction:'ArrowDown'})
-        //setInterval(() => {
-        //    clientGame.movePlayer({playerId:otherPlayerId,moveKey:'ArrowDown'})
-        //}, 100); 
+
+        clientGame.newBoot()
+        clientGame.newBoot()
+        clientGame.newBoot()
+        clientGame.newBoot()
+        clientGame.newBoot()
+        clientGame.newBoot()
     }
 
     return {

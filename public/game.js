@@ -1,19 +1,22 @@
 export default function createGame(canvas){
 
     const state = {
+        boots:[],
         players:[],
         fruits:[],
+        baseEnergy: 20
     }
     
     const observers = []
 
     function startFruits(){
-        newFruit({fruitId:newId()})
+        newFruit({})
         setTimeout(startFruits,4000)
     }
 
     function startPlayers(playerId){
         const player = state.players[playerId]
+        
         if(!player) { newPlayer({playerId}); startPlayers(playerId) ;return }
         
         if(player.ativo){
@@ -23,6 +26,8 @@ export default function createGame(canvas){
                 pressed: false
             })
         }
+
+        moveBoots()
         
         setTimeout(startPlayers,player.velocity,playerId)
     }
@@ -31,15 +36,51 @@ export default function createGame(canvas){
         Object.assign(state,newState)
     }
 
-    function newObserver(observerFunc){
-        observers.push(observerFunc)
+    function newObserver(observerFunc){ observers.push(observerFunc) }
+
+    function observerExe(params){ for(const observerFunc of observers){ observerFunc(params) } }
+
+
+
+
+    function newBoot(id = 'boot:'+newId()){
+        state.boots.push(id)
+
+        newPlayer({playerId: id,direction: 'ArrowUp'})
     }
 
-    function observerExe(params){
-        for(const observerFunc of observers){
-            observerFunc(params)
+    function moveBoots(){
+        for(let bootId of state.boots){
+            const boot = state.players[bootId]
+            if(!boot) continue
+    
+            const key = moveRandom(boot)
+
+            movePlayer({
+                playerId: bootId,
+                moveKey: key ? key : boot.direction 
+            })
         }
     }
+
+    function moveRandom(boot){
+        const moves = ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' ']
+        const key = random(0,1200)
+
+        if(key <= 100) { boot.direction =  moves[3]; return }
+        if(key <= 200) { boot.direction =  moves[2]; return }
+        if(key <= 300) { boot.direction =  moves[1]; return }
+        if(key <= 400) { boot.direction =  moves[0]; return }
+        if(key <= 1000) return boot.direction
+        if(key > 1190) return moves[4]
+    }
+
+
+
+
+
+
+
 
     function newPlayer(params){
         const x = 'x' in params ? params.x : random(0,canvas.width-1)
@@ -49,7 +90,6 @@ export default function createGame(canvas){
             playerId: params.playerId,
             x: x,
             y: y,
-            pontos: 0,
             calda: [{x,y}],
             velocity: 100,
             direction: 'direction' in params ? params.direction : null,
@@ -58,59 +98,54 @@ export default function createGame(canvas){
             run: false
         }
         
-        state.players[`${params.playerId}`] = player
-        
-        observerExe({
-            commandType: 'newPlayer',
-            playerId: player.playerId,
-            playerX: player.x,
-            playerY: player.y
-        })
+        if(playerCollison(player)){
+            newPlayer(params)
+        }else{
+            state.players[`${params.playerId}`] = player
+        } 
     }
 
     function removePlayer(params){
-        delete state.players[`${params.playerId}`]
+        const bootId = state.boots.indexOf(params.playerId)
+        
+        if(bootId > -1){
+            newBoot(state.boots[bootId].playerId)
+        }
 
-        observerExe({
-            commandType: 'removePlayer',
-            playerId: params.playerId,
-        })
+        delete state.players[`${params.playerId}`]
     }
 
     function newFruit(params){
+        
         const fruit = {
-            fruitId: params.fruitId,
-            x: random(0,canvas.width-1),
-            y: random(0,canvas.height-1),
+            fruitId: 'fruitId' in params ? params.fruitId : newId(),
+            x: 'x' in params ? params.x : random(0,canvas.width-1),
+            y: 'y' in params ? params.y : random(0,canvas.height-1),
         }
-
-        state.fruits[`${params.fruitId}`] = fruit
-
-        observerExe({
-            commandType: 'newFruit',
-            fruitId: fruit.fruitId,
-            fruitX: fruit.x,
-            fruitY: fruit.y
-        })
+        state.fruits[`${fruit.fruitId}`] = fruit
     }
 
     function removeFruit(params){
         delete state.fruits[`${params.fruitId}`]
-
-        observerExe({
-            commandType: 'removeFruit',
-            fruitId: params.fruitId,
-        })
     }
 
     function playerCollison(player){
 
         for(const id in state.players){
+            if(player.playerId == id) continue
+            
             const otherPlayer = state.players[id]
 
             for(const calda of otherPlayer.calda){
-                if(calda.x == player.x && calda.y == player.y && otherPlayer.playerId != id){
-                    removePlayer({playerId:otherPlayer.playerId})
+                if(calda.x == player.x && calda.y == player.y){
+
+                    const dieCalda = player.calda
+
+                    removePlayer({playerId:player.playerId})
+
+                    for(let fruit of dieCalda){ newFruit({x: fruit.x, y: fruit.y}) }
+
+                    return true
                 }
             }
         }
@@ -122,8 +157,7 @@ export default function createGame(canvas){
             const fruit = state.fruits[id]
             
             if(fruit.x == player.x && fruit.y == player.y){
-                player.pontos++
-                if(player.energy < 100) player.energy += 10
+                player.energy += state.baseEnergy
                 removeFruit({fruitId: fruit.fruitId})
             }
         }
@@ -131,41 +165,42 @@ export default function createGame(canvas){
 
     function directionPlayer(params){
         const player = state.players[params.playerId]
+
+        if(player.move == false) return
+        
         const keyPressed = params.keyPressed
         const direction = player.direction
 
         const testDirection = {
             ArrowUp(){
-                if(direction == 'ArrowDown') return player.direction 
+                if(direction == 'ArrowDown' || direction == 'ArrowUp') return false
                 return 'ArrowUp'
             },
             ArrowRight(){
-                if(direction == 'ArrowLeft') return player.direction 
+                if(direction == 'ArrowLeft' || direction == 'ArrowRight') return false
                 return 'ArrowRight'
             },
             ArrowLeft(){
-                if(direction == 'ArrowRight') return player.direction 
+                if(direction == 'ArrowRight' || direction == 'ArrowLeft') return false
                 return 'ArrowLeft'
             },
             ArrowDown(){
-                if(direction == 'ArrowUp') return player.direction 
+                if(direction == 'ArrowUp' || direction == 'ArrowDown') return false
                 return 'ArrowDown'
             },
             [' '](){
                 player.run = !player.run
-                return player.direction
+                return false
             }
         }
 
         const testFunc = testDirection[keyPressed]
         
-        if(testFunc){
-            player.direction = testFunc()
-        }
+        if(testFunc && testFunc()) player.direction = testFunc()
     }
 
     function movePlayer(params){
-    
+        
         const acceptedMoves = {
             ArrowUp(player){
                 if(player.y - 1 >= 0){ player.y -- }else{ player.y = canvas.height - 1 }
@@ -182,7 +217,7 @@ export default function createGame(canvas){
         }
 
         function run(){
-            if(player.run && player.energy > 0){
+            if(player.run && player.energy > 1){
                 player.velocity = 45
                 player.energy--
             }else{
@@ -194,26 +229,21 @@ export default function createGame(canvas){
         const player = state.players[params.playerId]
         const moveKey = params.moveKey
         const moveFunc = acceptedMoves[moveKey]
-        
-        if(player && moveFunc){
-            player.ativo = false
 
+        if(player && moveFunc){
             run()
             moveFunc(player)
             updateCalda(player)
             fruitCollision(player)
             playerCollison(player)
-
-            player.ativo = true 
         }
-        // notifyAll
-    }
+    }  // notifyAll
 
     function updateCalda(player){
+        const pontos = player.energy/state.baseEnergy
 
         player.calda.unshift({x: player.x ,y: player.y})
-
-        if(player.calda.length-1 > player.pontos) player.calda.pop()
+        player.calda.splice(pontos+3,player.calda.length-pontos)
     }
 
     return {
@@ -222,6 +252,8 @@ export default function createGame(canvas){
         startFruits,
         newObserver,
         observerExe,
+        newBoot,
+        moveBoots,
         newPlayer,
         removePlayer,
         movePlayer,
