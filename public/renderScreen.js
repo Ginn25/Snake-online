@@ -1,4 +1,5 @@
-export default function renderScreen(canvas,state,requestAnimationFrame,playerId){
+export default function renderScreen(document,state,requestAnimationFrame,playerId,Score){
+    const canvas = document.getElementById('canvas')
     const ctx = canvas.getContext('2d')
 
     ctx.clearRect(0,0,canvas.width,canvas.height)
@@ -29,6 +30,7 @@ export default function renderScreen(canvas,state,requestAnimationFrame,playerId
     }
 
     requestAnimationFrame(()=>{
-        renderScreen(canvas,state,requestAnimationFrame,playerId)
+        renderScreen(document,state,requestAnimationFrame,playerId,Score)
+        Score(state,document)
     })
 }

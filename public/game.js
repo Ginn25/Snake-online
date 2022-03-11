@@ -14,6 +14,11 @@ export default function createGame(canvas){
         setTimeout(startFruits,4000)
     }
 
+    function startBoots(){
+        moveBoots()
+        setTimeout(startBoots,100)
+    }
+
     function startPlayers(playerId){
         const player = state.players[playerId]
         
@@ -27,8 +32,6 @@ export default function createGame(canvas){
             })
         }
 
-        moveBoots()
-        
         setTimeout(startPlayers,player.velocity,playerId)
     }
 
@@ -250,6 +253,7 @@ export default function createGame(canvas){
         state,
         startPlayers,
         startFruits,
+        startBoots,
         newObserver,
         observerExe,
         newBoot,
