@@ -1,9 +1,7 @@
 export default function(state,document){
     const score = document.getElementById('lista-players')
-    let fruitsN = 0
-    for(const i in state.fruits){ fruitsN ++ }
 
-    score.innerHTML = `<article><p>${fruitsN}</p></article>`
+    score.innerHTML = ``
     let players = []
 
     for(const id in state.players){ players.push(state.players[id]) }
@@ -11,11 +9,13 @@ export default function(state,document){
     players.sort((a, b) => { if(a.energy > b.energy) return -1; else if(a.energy < b.energy) return 1; else return 0 })
 
     for(const id in players){
-        if(id > 14) continue
+        if(id > 15) continue
         const player = players[id]
         score.innerHTML += `
-        <article>
-			<p>Pontos ${parseInt(player.energy/20)}  -  ${player.playerId}</p>
+        <article id='ranking'>
+			<p> ${eval(id)}º Lugar </p>
+            <p> ${parseInt(player.energy/20)} </p>
+            <p> ${player.playerId} </p>
 		</article>
         `
     }

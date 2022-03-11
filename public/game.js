@@ -43,9 +43,6 @@ export default function createGame(canvas){
 
     function observerExe(params){ for(const observerFunc of observers){ observerFunc(params) } }
 
-
-
-
     function newBoot(id = 'boot:'+newId()){
         state.boots.push(id)
 
@@ -77,13 +74,6 @@ export default function createGame(canvas){
         if(key <= 1000) return boot.direction
         if(key > 1190) return moves[4]
     }
-
-
-
-
-
-
-
 
     function newPlayer(params){
         const x = 'x' in params ? params.x : random(0,canvas.width-1)

@@ -4,6 +4,14 @@ export default function renderScreen(document,state,requestAnimationFrame,player
 
     ctx.clearRect(0,0,canvas.width,canvas.height)
     
+    for(let id in state.fruits){
+        const fruit = state.fruits[id]
+        if(fruit){
+            ctx.fillStyle = 'rgb(180,20,20)'
+            ctx.fillRect(fruit.x,fruit.y,1,1)
+        }
+    }
+
     for(let id in state.players){
         const player = state.players[id]
 
@@ -21,13 +29,7 @@ export default function renderScreen(document,state,requestAnimationFrame,player
         player.move = true
     }
 
-    for(let id in state.fruits){
-        const fruit = state.fruits[id]
-        if(fruit){
-            ctx.fillStyle = 'rgb(180,20,20)'
-            ctx.fillRect(fruit.x,fruit.y,1,1)
-        }
-    }
+    
 
     requestAnimationFrame(()=>{
         renderScreen(document,state,requestAnimationFrame,playerId,Score)
