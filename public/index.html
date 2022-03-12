@@ -58,24 +58,26 @@
 		import createGame from './game.js'
 		import onKeyboard from './onKeyboard.js'
 		import Server from '../server.js'
-		import Score from './Score.js'
+		import score from './score.js'
 
-		let Player1Id
 		const canvas = document.getElementById('canvas')
 		const game = createGame(canvas)
 		const state = game.state
 		const keyboard = onKeyboard(document,game)
 
 		game.newObserver((params)=>{
-			//console.table(params)
+			score(document,params.players)
 		})
+
+		//game.newObserver((params)=>{ console.table(params) })
 	
 		window.onload = ()=>{
 			const server = Server()
+			const Player1Id = server.id
+			
 			server.connect(game)
-			Player1Id = server.id
 		    keyboard.registerPlayer(Player1Id)
-			renderScreen(document,state,requestAnimationFrame,Player1Id,Score)
+			renderScreen(document,state,requestAnimationFrame,Player1Id,game.observersExe)
 		}
 	</script>
 </body>

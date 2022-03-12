@@ -1,4 +1,4 @@
-export default function renderScreen(document,state,requestAnimationFrame,playerId,Score){
+export default function renderScreen(document,state,requestAnimationFrame,playerId,observersExe){
     const canvas = document.getElementById('canvas')
     const ctx = canvas.getContext('2d')
 
@@ -29,10 +29,8 @@ export default function renderScreen(document,state,requestAnimationFrame,player
         player.move = true
     }
 
-    
-
     requestAnimationFrame(()=>{
-        renderScreen(document,state,requestAnimationFrame,playerId,Score)
-        Score(state,document)
+        renderScreen(document,state,requestAnimationFrame,playerId,observersExe)
+        observersExe({players: state.players})
     })
 }

@@ -8,6 +8,10 @@ export default function createGame(canvas){
     
     const observers = []
 
+    function newObserver(observerFunc){ observers.push(observerFunc) }
+
+    function observersExe(params){ for(const observerFunc of observers){ observerFunc(params) } }
+
     function startFruits(){
         newFruit({})
         setTimeout(startFruits,4000)
@@ -31,16 +35,12 @@ export default function createGame(canvas){
             })
         }
 
-        setTimeout(startPlayers,player.velocity,playerId)
+        setTimeout(startPlayers,player.delay,playerId)
     }
 
     function updateState(newState){
         Object.assign(state,newState)
     }
-
-    function newObserver(observerFunc){ observers.push(observerFunc) }
-
-    function observerExe(params){ for(const observerFunc of observers){ observerFunc(params) } }
 
     function newBoot(id = 'boot:'+newId()){
         newPlayer({playerId: id,direction: 'ArrowUp'})
@@ -85,7 +85,7 @@ export default function createGame(canvas){
             x: x,
             y: y,
             calda: [{x,y}],
-            velocity: 100,
+            delay: 100,
             direction: 'direction' in params ? params.direction : null,
             ativo: true,
             energy: 60,
@@ -146,6 +146,7 @@ export default function createGame(canvas){
             
             if(fruit.x == player.x && fruit.y == player.y){
                 player.energy += state.baseEnergy
+
                 removeFruit({fruitId: fruit.fruitId})
             }
         }
@@ -206,11 +207,11 @@ export default function createGame(canvas){
 
         function run(){
             if(player.run && player.energy > 60){
-                player.velocity = 45
+                player.delay = 45
                 player.energy--
             }else{
                 player.run = false
-                player.velocity = 100
+                player.delay = 100
             }
         }
 
@@ -225,7 +226,7 @@ export default function createGame(canvas){
             fruitCollision(player)
             playerCollison(player)
         }
-    }  // notifyAll
+    }
 
     function updateCalda(player){
         const pontos = player.energy/state.baseEnergy
@@ -240,7 +241,7 @@ export default function createGame(canvas){
         startFruits,
         startBoots,
         newObserver,
-        observerExe,
+        observersExe,
         newBoot,
         moveBoots,
         newPlayer,
