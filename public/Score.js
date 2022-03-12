@@ -1,10 +1,10 @@
 export default function(state,document){
-    const score = document.getElementById('lista-players')
-
-    score.innerHTML = ``
+    let score = document.getElementById('lista-players')
     let players = []
-
+    
     for(const id in state.players){ players.push(state.players[id]) }
+    
+    score.innerHTML = ``
 
     players.sort((a, b) => { if(a.energy > b.energy) return -1; else if(a.energy < b.energy) return 1; else return 0 })
 

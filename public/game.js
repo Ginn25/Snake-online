@@ -1,7 +1,6 @@
 export default function createGame(canvas){
 
     const state = {
-        boots:[],
         players:[],
         fruits:[],
         baseEnergy: 20
@@ -44,20 +43,22 @@ export default function createGame(canvas){
     function observerExe(params){ for(const observerFunc of observers){ observerFunc(params) } }
 
     function newBoot(id = 'boot:'+newId()){
-        state.boots.push(id)
-
         newPlayer({playerId: id,direction: 'ArrowUp'})
     }
 
     function moveBoots(){
-        for(let bootId of state.boots){
-            const boot = state.players[bootId]
-            if(!boot) continue
-    
+
+        let boots = []
+
+        for(let id in state.players){ if(id.includes('boot:')) boots.push(state.players[id]) }
+
+        if(boots.length < 20) newBoot()
+
+        for(let boot of boots){
             const key = moveRandom(boot)
 
             movePlayer({
-                playerId: bootId,
+                playerId: boot.playerId,
                 moveKey: key ? key : boot.direction 
             })
         }
@@ -87,7 +88,7 @@ export default function createGame(canvas){
             velocity: 100,
             direction: 'direction' in params ? params.direction : null,
             ativo: true,
-            energy: 0,
+            energy: 60,
             run: false
         }
         
@@ -99,12 +100,6 @@ export default function createGame(canvas){
     }
 
     function removePlayer(params){
-        const bootId = state.boots.indexOf(params.playerId)
-        
-        if(bootId > -1){
-            newBoot(state.boots[bootId].playerId)
-        }
-
         delete state.players[`${params.playerId}`]
     }
 
@@ -132,11 +127,11 @@ export default function createGame(canvas){
             for(const calda of otherPlayer.calda){
                 if(calda.x == player.x && calda.y == player.y){
 
-                    const dieCalda = player.calda
+                    for(let fruit of player.calda){ if(random(0,3) > 0) newFruit({x: fruit.x, y: fruit.y}) }
 
                     removePlayer({playerId:player.playerId})
 
-                    for(let fruit of dieCalda){ newFruit({x: fruit.x, y: fruit.y}) }
+                    otherPlayer.energy += state.baseEnergy
 
                     return true
                 }
@@ -210,7 +205,7 @@ export default function createGame(canvas){
         }
 
         function run(){
-            if(player.run && player.energy > 1){
+            if(player.run && player.energy > 60){
                 player.velocity = 45
                 player.energy--
             }else{
@@ -236,7 +231,7 @@ export default function createGame(canvas){
         const pontos = player.energy/state.baseEnergy
 
         player.calda.unshift({x: player.x ,y: player.y})
-        player.calda.splice(pontos+3,player.calda.length-pontos)
+        player.calda.splice(pontos,player.calda.length-pontos)
     }
 
     return {
