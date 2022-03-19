@@ -14,11 +14,7 @@ export default function server(){
         clientGame.updateState(game.state)
         clientGame.startPlayers(id)
         clientGame.startFruits()
-        clientGame.startBoots()
-
-        for(let i = 0; i < 15; i++) {
-            clientGame.newBoot()
-        }
+        clientGame.startBots()
     }
 
     return {

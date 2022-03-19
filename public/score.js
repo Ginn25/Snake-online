@@ -11,7 +11,9 @@ export default function(document,players){
 
     for(const id in list){
         const player = list[id]
+
         if(id == 0) continue
+        if(id > 15) break
 
         displayScore.innerHTML += `
         <article id='ranking'>
@@ -19,7 +21,5 @@ export default function(document,players){
             <p> ${parseInt(player.energy/20)} </p>
             <p> ${player.playerId} </p>
 		</article> `
-
-        if(id > 15) break;
     }
 }

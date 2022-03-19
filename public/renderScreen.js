@@ -15,8 +15,6 @@ export default function renderScreen(document,state,requestAnimationFrame,player
     for(let id in state.players){
         const player = state.players[id]
 
-        player.move = false
-
         let cor = player.ativo ? 'green': 'rgba(0,255,0,100)'
         
         if(playerId == id) { cor = player.ativo ? 'rgb(70,0,180)': 'rgba(120,0,180,1)' }
@@ -26,7 +24,6 @@ export default function renderScreen(document,state,requestAnimationFrame,player
             ctx.fillStyle = cor
             ctx.fillRect(calda.x,calda.y,1,1) 
         }
-        player.move = true
     }
 
     requestAnimationFrame(()=>{

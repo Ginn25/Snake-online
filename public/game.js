@@ -13,13 +13,13 @@ export default function createGame(canvas){
     function observersExe(params){ for(const observerFunc of observers){ observerFunc(params) } }
 
     function startFruits(){
-        newFruit({})
+        if(state.fruits.length < 1000) newFruit({})
         setTimeout(startFruits,4000)
     }
 
-    function startBoots(){
-        moveBoots()
-        setTimeout(startBoots,100)
+    function startBots(){
+        moveBots()
+        setTimeout(startBots,100)
     }
 
     function startPlayers(playerId){
@@ -30,8 +30,7 @@ export default function createGame(canvas){
         if(player.ativo){
             movePlayer({
                 playerId:playerId,
-                moveKey:player.direction,
-                pressed: false
+                moveKey:player.direction
             })
         }
 
@@ -42,38 +41,36 @@ export default function createGame(canvas){
         Object.assign(state,newState)
     }
 
-    function newBoot(id = 'boot:'+newId()){
+    function newBot(id = 'bot:'+newId()){
         newPlayer({playerId: id,direction: 'ArrowUp'})
     }
 
-    function moveBoots(){
+    function moveBots(){
 
-        let boots = []
+        let bots = []
 
-        for(let id in state.players){ if(id.includes('boot:')) boots.push(state.players[id]) }
+        for(let id in state.players){ if(id.includes('bot:')) bots.push(state.players[id]) }
 
-        if(boots.length < 20) newBoot()
+        if(bots.length < 15) newBot()
 
-        for(let boot of boots){
-            const key = moveRandom(boot)
-
+        for(let bot of bots){
+            directionPlayer({playerId:bot.playerId,keyPressed:moveRandom(bot)})
             movePlayer({
-                playerId: boot.playerId,
-                moveKey: key ? key : boot.direction 
+                playerId: bot.playerId,
+                moveKey: bot.direction 
             })
         }
     }
 
-    function moveRandom(boot){
-        const moves = ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' ']
+    function moveRandom(bot){
+        const moves = ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight']
         const key = random(0,1200)
 
-        if(key <= 100) { boot.direction =  moves[3]; return }
-        if(key <= 200) { boot.direction =  moves[2]; return }
-        if(key <= 300) { boot.direction =  moves[1]; return }
-        if(key <= 400) { boot.direction =  moves[0]; return }
-        if(key <= 1000) return boot.direction
-        if(key > 1190) return moves[4]
+        if(key <= 100) return moves[3]
+        if(key <= 200) return moves[2]
+        if(key <= 300) return moves[1]
+        if(key <= 400) return moves[0]
+        if(key <= 1000) return bot.direction
     }
 
     function newPlayer(params){
@@ -154,77 +151,67 @@ export default function createGame(canvas){
 
     function directionPlayer(params){
         const player = state.players[params.playerId]
-
-        if(player.move == false) return
-        
         const keyPressed = params.keyPressed
         const direction = player.direction
 
-        const testDirection = {
-            ArrowUp(){
-                if(direction == 'ArrowDown' || direction == 'ArrowUp') return false
-                return 'ArrowUp'
-            },
-            ArrowRight(){
-                if(direction == 'ArrowLeft' || direction == 'ArrowRight') return false
-                return 'ArrowRight'
-            },
-            ArrowLeft(){
-                if(direction == 'ArrowRight' || direction == 'ArrowLeft') return false
-                return 'ArrowLeft'
-            },
-            ArrowDown(){
-                if(direction == 'ArrowUp' || direction == 'ArrowDown') return false
-                return 'ArrowDown'
-            },
-            [' '](){
-                player.run = !player.run
-                return false
-            }
-        }
+        if(player.pausa) return
 
-        const testFunc = testDirection[keyPressed]
-        
-        if(testFunc && testFunc()) player.direction = testFunc()
+        switch (keyPressed) {
+            case direction: break
+            case ' ': player.correndo = !player.correndo ; break
+            case 'ArrowUp':
+                if(direction != 'ArrowDown') player.direction = 'ArrowUp'
+                break
+            case 'ArrowDown':
+                if(direction != 'ArrowUp') player.direction = 'ArrowDown'
+                break
+            case 'ArrowLeft':
+                if(direction != 'ArrowRight') player.direction = 'ArrowLeft'
+                break
+            case 'ArrowRight':
+                if(direction != 'ArrowLeft') player.direction = 'ArrowRight'
+                break
+        }
+        player.pausa = true
     }
 
     function movePlayer(params){
         
         const acceptedMoves = {
             ArrowUp(player){
-                if(player.y - 1 >= 0){ player.y -- }else{ player.y = canvas.height - 1 }
+                player.y = (player.y - 1 + canvas.height) % canvas.height
             },
             ArrowDown(player){
-                if(player.y + 1 < canvas.height){ player.y ++ }else{ player.y = 0 }
+                player.y = (player.y + 1 + canvas.height) % canvas.height
             },
             ArrowLeft(player){
-                if(player.x - 1 >= 0){ player.x -- }else{ player.x = canvas.width - 1 }
+                player.x = (player.x - 1 + canvas.width) % canvas.width
             },
             ArrowRight(player){
-                if(player.x + 1 < canvas.width){ player.x ++ }else{ player.x = 0 }
+                player.x = (player.x + 1 + canvas.width) % canvas.width
             }
         }
 
-        function run(){
-            if(player.run && player.energy > 60){
+        function correr(){
+            if(player.correndo && player.energy > 60){
                 player.delay = 45
                 player.energy--
             }else{
-                player.run = false
+                player.correndo = false
                 player.delay = 100
             }
         }
 
         const player = state.players[params.playerId]
-        const moveKey = params.moveKey
-        const moveFunc = acceptedMoves[moveKey]
+        const moveFunc = acceptedMoves[params.moveKey]
 
         if(player && moveFunc){
-            run()
+            correr()
             moveFunc(player)
             updateCalda(player)
             fruitCollision(player)
             playerCollison(player)
+            player.pausa = false
         }
     }
 
@@ -232,18 +219,19 @@ export default function createGame(canvas){
         const pontos = player.energy/state.baseEnergy
 
         player.calda.unshift({x: player.x ,y: player.y})
-        player.calda.splice(pontos,player.calda.length-pontos)
+
+        player.calda.splice(pontos,player.calda.length)
     }
 
     return {
         state,
         startPlayers,
         startFruits,
-        startBoots,
+        startBots,
         newObserver,
         observersExe,
-        newBoot,
-        moveBoots,
+        newBot,
+        moveBots,
         newPlayer,
         removePlayer,
         movePlayer,

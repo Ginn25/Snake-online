@@ -10,6 +10,10 @@
 			display: flex;
 		}
 
+		h2{
+			text-align: center;
+		}
+
 		p{
 			padding-left: 10px;
 			margin-bottom: 4px;
@@ -20,7 +24,6 @@
 		}
 
 		article{
-			color: white;
 			margin-left: 15px;
 		}
 
@@ -29,7 +32,8 @@
 			border: solid 10px rgb(50, 50, 50);
 			width: 220px;
 			height: 570px;
-			font-size: small;
+			font-size: 13px;
+			color: white;
 		}
 
 		#canvas{
@@ -47,10 +51,8 @@
 
 	<canvas id="canvas" width="100" height="57"></canvas>
 	<div id="score">
-		<p style="text-align: center; color: white;">Ranking de jogadores</p>
-		<div id="lista-players">
-
-		</div>
+		<h2>Ranking de jogadores</h2>
+		<div id="lista-players"></div>
 	</div>
 
 	<script type="module">
